@@ -1,22 +1,18 @@
 // main.js: javascript stuff for pages in the `main' frame.
 
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/sw.js')
+  navigator.serviceWorker.register(new URL('sw.js', document.currentScript.src).href)
     .then(reg => console.log('service worker registered', reg))
     .catch(err => console.log('service worker not registered', err));
 }
 var prevScrollpos = window.pageYOffset;
-window.onscroll = function() {
-  if (prevScrollpos > window.pageYOffset) {
-    document.getElementById("navbar").style.opacity = "0.8";
-      console.log(document.getElementById("navbar").style.opacity);
-  }
-  else {
-    document.getElementById("navbar").style.opacity = "0.3";
-      console.log(document.getElementById("navbar").style.opacity);
+window.addEventListener('scroll', function () {
+  var navbar = document.getElementById('navbar');
+  if (navbar) {
+    navbar.style.opacity = prevScrollpos > window.pageYOffset ? '0.8' : '0.3';
   }
   prevScrollpos = window.pageYOffset;
-}
+});
 function goBack() {
   window.history.back();
 }
@@ -48,8 +44,7 @@ function put_in_frame()
   location.href='frames.htm?'+location.href.replace(/^.*[\\\/]/,"")
 }
 
-if(/\bvsearch\.htm$/i.test(location.pathname)
-   || /\blistv\.htm$/i.test(location.pathname))
+if(/\blistv\.htm$/i.test(location.pathname))
   put_in_frame()
 ////////////////////////////////////////////////////////////////////
 // Standard onload handlers to support multiple handlers.
@@ -202,3 +197,13 @@ function update_quick_links()
 if(init_js_stuff)
   onload_add(update_quick_links)
 ////////////////////////////////////////////////////////////////////
+
+// Shared responsive presentation, after legacy page styles.
+document.write('<link rel="stylesheet" href="reader.css">');
+onload_add(function () {
+  if (!document.querySelector('meta[name="viewport"]')) {
+    var viewport = document.createElement("meta");
+    viewport.name = "viewport"; viewport.content = "width=device-width, initial-scale=1";
+    document.head.appendChild(viewport);
+  }
+});

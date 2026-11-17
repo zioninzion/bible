@@ -1,31 +1,42 @@
-const staticCacheName = 'site-static-content';
-const dynamicCacheName = 'site-dynamic-content';
+const cachePrefix = 'bible-content-' + self.registration.scope;
+const staticCacheName = cachePrefix + '-static-v7';
+const dynamicCacheName = cachePrefix + '-dynamic-v7';
 const assets = [
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/index.html',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/frames.htm',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/icons/icon-128x128.png',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/icons/icon-144x144.png',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/icons/icon-152x152.png',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/icons/icon-192x192.png',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/icons/icon-384x384.png',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/icons/icon-512x512.png',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/icons/icon-72x72.png',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/icons/icon-96x96.png',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/b.css',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/std.js',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/xpmenu.js',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/formretain.js',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/vdata.js',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/quicklinks.js',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/idata.js',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/isearch.js',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/listv.js',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/goverse.js',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/blank4x4.png',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/a.css',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/main.js',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/sw.js',
-'https://emmanak.github.io/bible/4ca70a9115ceec7a70a3a26e85c32caf492af4f9/manifest.json'
+'./index.html',
+'./b.htm',
+'./reader.css',
+'./library.js',
+'./vsearch.htm',
+'./search.css',
+'./search.js',
+'./search-range.js',
+'./a.htm',
+'./leftbar.htm',
+'./rightbar.htm',
+'./frames.htm',
+'./icons/icon-128x128.png',
+'./icons/icon-144x144.png',
+'./icons/icon-152x152.png',
+'./icons/icon-192x192.png',
+'./icons/icon-384x384.png',
+'./icons/icon-512x512.png',
+'./icons/icon-72x72.png',
+'./icons/icon-96x96.png',
+'./b.css',
+'./std.js',
+'./xpmenu.js',
+'./formretain.js',
+'./vdata.js',
+'./quicklinks.js',
+'./idata.js',
+'./isearch.js',
+'./listv.js',
+'./goverse.js',
+'./blank4x4.png',
+'./a.css',
+'./main.js',
+'./sw.js',
+'./manifest.json'
 
 
 
@@ -33,46 +44,35 @@ const assets = [
 
 ];
 
-// install event
-self.addEventListener('install', evt => {
-  //console.log('service worker installed');
-  evt.waitUntil(
-    caches.open(staticCacheName).then((cache) => {
-      console.log('caching shell assets');
-      cache.addAll(assets);
-      /*for(var i = 0; i < assets.length; i++){
-          console.log("caching:"+assets[i]);
-          cache.add(assets[i]);  
-      }*/
-    })
-  );
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(staticCacheName).then(cache => cache.addAll(assets)));
 });
 
-// activate event
-self.addEventListener('activate', evt => {
-  //console.log('service worker activated');
-  evt.waitUntil(
-    caches.keys().then(keys => {
-      //console.log(keys);
-      return Promise.all(keys
-        .filter(key => key !== staticCacheName)
-        .map(key => caches.delete(key))
-      );
-    })
-  );
+self.addEventListener('activate', event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(
+    keys.filter(key => key.startsWith(cachePrefix) &&
+      key !== staticCacheName && key !== dynamicCacheName)
+      .map(key => caches.delete(key))
+  )));
 });
 
-// fetch event
-self.addEventListener('fetch', evt => {
-  //console.log('fetch event', evt);
-  evt.respondWith(
-    caches.match(evt.request).then(cacheRes => {
-      return cacheRes || fetch(evt.request).then(fetchRes => {
-        return caches.open(dynamicCacheName).then(cache => {
-          cache.put(evt.request.url, fetchRes.clone());
-          return fetchRes;
-        })
-      });
-    })
-  );
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET' ||
+      new URL(event.request.url).origin !== self.location.origin) return;
+
+  event.respondWith((async () => {
+    const cached = await caches.match(event.request);
+    if (cached) return cached;
+    const response = await fetch(event.request);
+    if (response.ok) {
+      const copy = response.clone();
+      const cache = await caches.open(dynamicCacheName);
+      try {
+        await cache.put(event.request, copy);
+      } catch (error) {
+        // Storage limits must not prevent an online page from loading.
+      }
+    }
+    return response;
+  })());
 });

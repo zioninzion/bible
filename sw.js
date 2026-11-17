@@ -1,37 +1,37 @@
-const staticCacheName = 'site-static-login';
-const assets = [
-    '/',
-    '/index.html',
-    '/grunge_patterns.jpg'
+const cachePrefix = 'bible-login-' + self.registration.scope;
+const staticCacheName = cachePrefix + '-static-v4';
+const dynamicCacheName = cachePrefix + '-dynamic-v4';
+const assets = ['./', './index.html', './login.js', './manifest.json', './grunge_patterns.jpg'];
 
-];
-
-// install event
-self.addEventListener('install', evt => {
-  //console.log('service worker installed');
-  evt.waitUntil(
-    caches.open(staticCacheName).then((cache) => {
-      console.log('caching shell assets');
-      cache.addAll(assets);
-      /*for(var i = 0; i < assets.length; i++){
-          console.log("caching:"+assets[i]);
-          cache.add(assets[i]);  
-      }*/
-    })
-  );
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(staticCacheName).then(cache => cache.addAll(assets)).then(() => self.skipWaiting()));
 });
 
-// activate event
-self.addEventListener('activate', evt => {
-  //console.log('service worker activated');
+self.addEventListener('activate', event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(
+    keys.filter(key => key.startsWith(cachePrefix) &&
+      key !== staticCacheName && key !== dynamicCacheName)
+      .map(key => caches.delete(key))
+  )));
 });
 
-// fetch event
-self.addEventListener('fetch', evt => {
-    //console.log('fetch event', evt);
-    evt.respondWith(
-      caches.match(evt.request).then(cacheRes => {
-        return cacheRes || fetch(evt.request);
-      })
-    );
-  });
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET' ||
+      new URL(event.request.url).origin !== self.location.origin) return;
+
+  event.respondWith((async () => {
+    const cached = await caches.match(event.request);
+    if (cached) return cached;
+    const response = await fetch(event.request);
+    if (response.ok) {
+      const copy = response.clone();
+      const cache = await caches.open(dynamicCacheName);
+      try {
+        await cache.put(event.request, copy);
+      } catch (error) {
+        // Storage limits must not prevent an online page from loading.
+      }
+    }
+    return response;
+  })());
+});
