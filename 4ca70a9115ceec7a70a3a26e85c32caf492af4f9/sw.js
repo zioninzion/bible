@@ -1,6 +1,6 @@
 const cachePrefix = 'bible-content-' + self.registration.scope;
-const staticCacheName = cachePrefix + '-static-v7';
-const dynamicCacheName = cachePrefix + '-dynamic-v7';
+const staticCacheName = cachePrefix + '-static-v8';
+const dynamicCacheName = cachePrefix + '-dynamic-v8';
 const assets = [
 './index.html',
 './b.htm',
@@ -10,6 +10,7 @@ const assets = [
 './search.css',
 './search.js',
 './search-range.js',
+'./search-query.js',
 './a.htm',
 './leftbar.htm',
 './rightbar.htm',
